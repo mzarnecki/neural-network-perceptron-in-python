@@ -374,6 +374,615 @@ If model predicts:
 
 So lower is better.
 
+Below is the same version, but with letters instead of numbers for each section.
+
+---
+
+## A. Forward pass
+
+Assume we have:
+
+```python
+Z = W @ X + b
+A = sigmoid(Z)
+```
+
+Where:
+
+```python
+A = 1 / (1 + exp(-Z))
+```
+
+For one training example:
+
+$$
+z = wx + b
+$$
+
+$$
+a = \sigma(z)
+$$
+
+The prediction `a` is a probability between `0` and `1`.
+
+For binary classification, the log loss for one example is:
+
+$$
+\mathcal{L}(a, y)=-\left(y \log(a) + (1-y)\log(1-a)\right)
+$$
+
+For `m` examples:
+
+$$
+J =
+\frac{1}{m}
+\sum_{i=1}^{m}
+\mathcal{L}(a^{(i)}, y^{(i)})
+$$
+
+---
+
+## B. Goal
+
+We want to compute:
+
+$$
+\frac{\partial J}{\partial W}
+$$
+
+and:
+
+$$
+\frac{\partial J}{\partial b}
+$$
+
+But `W` and `b` affect the loss indirectly:
+
+$$
+W, b
+\rightarrow Z
+\rightarrow A
+\rightarrow \mathcal{L}
+$$
+
+So we use the **chain rule**.
+
+---
+
+## C. Chain rule path
+
+For one example, the full chain for the weight is:
+
+$$
+\frac{\partial \mathcal{L}}{\partial w}=\frac{\partial \mathcal{L}}{\partial a}
+\cdot
+\frac{\partial a}{\partial z}
+\cdot
+\frac{\partial z}{\partial w}
+$$
+
+and for the bias:
+
+$$
+\frac{\partial \mathcal{L}}{\partial b}=\frac{\partial \mathcal{L}}{\partial a}
+\cdot
+\frac{\partial a}{\partial z}
+\cdot
+\frac{\partial z}{\partial b}
+$$
+
+Now notice that the first two parts of the chain can be grouped together:
+
+$$
+\frac{\partial \mathcal{L}}{\partial z}=\frac{\partial \mathcal{L}}{\partial a}
+\cdot
+\frac{\partial a}{\partial z}
+$$
+
+So instead of writing:
+
+$$
+\frac{\partial \mathcal{L}}{\partial w}=\frac{\partial \mathcal{L}}{\partial a}
+\cdot
+\frac{\partial a}{\partial z}
+\cdot
+\frac{\partial z}{\partial w}
+$$
+
+we can write:
+
+$$
+\frac{\partial \mathcal{L}}{\partial w}=\frac{\partial \mathcal{L}}{\partial z}
+\cdot
+\frac{\partial z}{\partial w}
+$$
+
+And instead of writing:
+
+$$
+\frac{\partial \mathcal{L}}{\partial b}=\frac{\partial \mathcal{L}}{\partial a}
+\cdot
+\frac{\partial a}{\partial z}
+\cdot
+\frac{\partial z}{\partial b}
+$$
+
+we can write:
+
+$$
+\frac{\partial \mathcal{L}}{\partial b}=\frac{\partial \mathcal{L}}{\partial z}
+\cdot
+\frac{\partial z}{\partial b}
+$$
+
+The most important intermediate derivative is therefore:
+
+$$
+\frac{\partial \mathcal{L}}{\partial z}
+$$
+
+This tells us:
+
+> how much the loss changes when the raw model output `z` changes.
+
+This is what your notebook calls:
+
+```python
+dZ
+```
+
+So:
+
+```python
+dZ = A - Y
+```
+
+means:
+
+$$
+dZ =
+\frac{\partial \mathcal{L}}{\partial Z}
+$$
+
+or, for one example:
+
+$$
+dz =
+\frac{\partial \mathcal{L}}{\partial z}
+$$
+
+---
+
+## D. Derivative of log loss with respect to `A`
+
+The loss is:
+
+$$
+\mathcal{L}(a, y)=-\left(y \log(a) + (1-y)\log(1-a)\right)
+$$
+
+Differentiate with respect to `a`:
+
+$$
+\frac{\partial \mathcal{L}}{\partial a}=-\frac{y}{a}
++
+\frac{1-y}{1-a}
+$$
+
+So:
+
+$$
+\frac{\partial \mathcal{L}}{\partial a}=\frac{a-y}{a(1-a)}
+$$
+
+This part alone looks ugly.
+
+---
+
+## E. Derivative of sigmoid
+
+Sigmoid is:
+
+$$
+a = \sigma(z)
+$$
+
+Its derivative is:
+
+$$
+\frac{\partial a}{\partial z}=a(1-a)
+$$
+
+This is the beautiful part.
+
+---
+
+## F. Chain rule gives a simplification
+
+Now multiply both parts:
+
+$$
+\frac{\partial \mathcal{L}}{\partial z}=\frac{\partial \mathcal{L}}{\partial a}
+\cdot
+\frac{\partial a}{\partial z}
+$$
+
+Substitute:
+
+$$
+\frac{\partial \mathcal{L}}{\partial z}=\frac{a-y}{a(1-a)}
+\cdot
+a(1-a)
+$$
+
+The terms cancel:
+
+$$
+\frac{\partial \mathcal{L}}{\partial z}=a-y
+$$
+
+So:
+
+```python
+dZ = A - Y
+```
+
+This is why the derivative becomes so simple.
+
+The sigmoid derivative and the log loss derivative cancel each other nicely.
+
+---
+
+## G. Now derivative with respect to `W`
+
+We have:
+
+$$
+Z = WX + b
+$$
+
+For one example:
+
+$$
+z = wx + b
+$$
+
+The derivative of `z` with respect to `w` is simply:
+
+$$
+\frac{\partial z}{\partial w}=x
+$$
+
+Now use the grouped chain rule:
+
+$$
+\frac{\partial \mathcal{L}}{\partial w}=\frac{\partial \mathcal{L}}{\partial z}
+\cdot
+\frac{\partial z}{\partial w}
+$$
+
+Since:
+
+$$
+\frac{\partial \mathcal{L}}{\partial z}=a-y
+$$
+
+and:
+
+$$
+\frac{\partial z}{\partial w}=x
+$$
+
+we get:
+
+$$
+\frac{\partial \mathcal{L}}{\partial w}=(a-y)x
+$$
+
+So for one example:
+
+```python
+dZ = a - y
+dW = dZ * x
+```
+
+For many examples, we average over all `m` examples:
+
+$$
+\frac{\partial J}{\partial W}=\frac{1}{m}(A-Y)X^T
+$$
+
+In NumPy:
+
+```python
+dW = 1/m * np.dot(dZ, X.T)
+```
+
+Because:
+
+```python
+dZ = A - Y
+```
+
+so:
+
+```python
+dW = 1/m * np.dot(A - Y, X.T)
+```
+
+---
+
+## H. Why multiply by `X.T`?
+
+Assume:
+
+```python
+X.shape  = (n_features, m)
+W.shape  = (1, n_features)
+Z.shape  = (1, m)
+A.shape  = (1, m)
+Y.shape  = (1, m)
+dZ.shape = (1, m)
+```
+
+We want:
+
+```python
+dW.shape = (1, n_features)
+```
+
+So we compute:
+
+```python
+dZ @ X.T
+```
+
+Shapes:
+
+```python
+(1, m) @ (m, n_features) = (1, n_features)
+```
+
+This gives one gradient value for each weight.
+
+Intuitively:
+
+```python
+dW = average error * input feature values
+```
+
+Each weight gets updated depending on:
+
+a. how wrong the prediction was: `A - Y`,
+b. how large the corresponding input feature was: `X`.
+
+---
+
+## I. Derivative with respect to `b`
+
+Again:
+
+$$
+z = wx + b
+$$
+
+The derivative of `z` with respect to `b` is:
+
+$$
+\frac{\partial z}{\partial b} = 1
+$$
+
+Now use the grouped chain rule:
+
+$$
+\frac{\partial \mathcal{L}}{\partial b} = \frac{\partial \mathcal{L}}{\partial z}
+\cdot
+\frac{\partial z}{\partial b}
+$$
+
+Since:
+
+$$
+\frac{\partial \mathcal{L}}{\partial z} = a-y
+$$
+
+and:
+
+$$
+\frac{\partial z}{\partial b}=1
+$$
+
+we get:
+
+$$
+\frac{\partial \mathcal{L}}{\partial b}=(a-y) \cdot 1
+$$
+
+Therefore:
+
+$$
+\frac{\partial \mathcal{L}}{\partial b} = a-y
+$$
+
+For many examples, we average:
+
+$$
+\frac{\partial J}{\partial b} = \frac{1}{m}
+\sum_{i=1}^{m}
+(a^{(i)} - y^{(i)})
+$$
+
+In NumPy:
+
+```python
+db = 1/m * np.sum(dZ, axis=1, keepdims=True)
+```
+
+Because:
+
+```python
+dZ = A - Y
+```
+
+So:
+
+```python
+db = 1/m * np.sum(A - Y, axis=1, keepdims=True)
+```
+
+---
+
+## J. Tiny numeric example
+
+Suppose one example:
+
+```python
+x = 2
+y = 1
+z = 0
+a = sigmoid(0) = 0.5
+```
+
+The model predicted `0.5`, but the correct label is `1`.
+
+So:
+
+```python
+dZ = a - y = 0.5 - 1 = -0.5
+```
+
+This means:
+
+$$
+\frac{\partial \mathcal{L}}{\partial z}
+=======================================
+
+-0.5
+$$
+
+The negative value means:
+
+> if we increase `z`, the loss should go down.
+
+That makes sense, because increasing `z` increases the sigmoid output `a`, and `a` should move closer to `1`.
+
+Now:
+
+```python
+dW = dZ * x
+```
+
+So:
+
+```python
+dW = -0.5 * 2 = -1.0
+```
+
+And:
+
+```python
+db = dZ = -0.5
+```
+
+During gradient descent:
+
+```python
+W = W - learning_rate * dW
+b = b - learning_rate * db
+```
+
+Because `dW` and `db` are negative, subtracting them increases `W` and `b`.
+
+That increases `z`, which increases `a`, which moves the prediction closer to `1`.
+
+---
+
+## K. The whole chain in one line
+
+For one example, the fully expanded chain is:
+
+$$
+\frac{\partial \mathcal{L}}{\partial W}=
+\frac{\partial \mathcal{L}}{\partial A}
+\cdot
+\frac{\partial A}{\partial Z}
+\cdot
+\frac{\partial Z}{\partial W}
+$$
+
+The first two parts are grouped into:
+
+$$
+\frac{\partial \mathcal{L}}{\partial Z}=
+\frac{\partial \mathcal{L}}{\partial A}
+\cdot
+\frac{\partial A}{\partial Z}
+$$
+
+So the shorter version is:
+
+$$
+\frac{\partial \mathcal{L}}{\partial W}=
+\frac{\partial \mathcal{L}}{\partial Z}
+\cdot
+\frac{\partial Z}{\partial W}
+$$
+
+Since:
+
+$$
+\frac{\partial \mathcal{L}}{\partial Z}=
+A-Y
+$$
+
+and:
+
+$$
+\frac{\partial Z}{\partial W}=
+X^T
+$$
+
+we get:
+
+$$
+\frac{\partial \mathcal{L}}{\partial W}=
+(A-Y)X^T
+$$
+
+For `m` examples:
+
+$$
+\frac{\partial J}{\partial W}=
+\frac{1}{m}(A-Y)X^T
+$$
+
+And for bias:
+
+$$
+\frac{\partial J}{\partial b}=
+\frac{1}{m}\sum(A-Y)
+$$
+
+So the notebook code:
+
+```python
+dZ = A - Y
+dW = 1/m * np.dot(dZ, X.T)
+db = 1/m * np.sum(dZ, axis=1, keepdims=True)
+```
+
+means:
+
+```python
+error = prediction - true_label
+raw_output_gradient = error
+weight_gradient = average(raw_output_gradient * input_features)
+bias_gradient = average(raw_output_gradient)
+```
+
+because the derivative of log loss and the derivative of sigmoid cancel each other.
+
+
 ## 7. Why do we subtract \(Y\) from \(A\) in backpropagation?
 
 The notebook computes:
