@@ -136,9 +136,9 @@ That is hard to interpret directly.
 
 But after sigmoid:
 
-- \(-10 \to \approx 0.000045\)
-- \(0.8 \to \approx 0.69\)
-- \(23 \to \approx 1.0\)
+- \(-10 ~ 0.000045\)
+- \(0.8 ~ 0.69\)
+- \(23 ~ 1.0\)
 
 Much easier:
 
@@ -155,8 +155,8 @@ $$
 
 So:
 
-- \(z > 0 \Rightarrow a > 0.5\)
-- \(z < 0 \Rightarrow a < 0.5\)
+- \(z > 0 &rarr; a > 0.5\)
+- \(z < 0 &rarr; a < 0.5\)
 
 That means thresholding at 0.5 is the same as asking which side of the decision line the point is on.
 
