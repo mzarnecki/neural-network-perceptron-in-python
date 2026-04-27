@@ -368,9 +368,9 @@ Suppose true label is \(y = 1\).
 
 If model predicts:
 
-- \(a = 0.9\), loss \(= -\log(0.9) \approx 0.105\)
-- \(a = 0.5\), loss \(= -\log(0.5) \approx 0.693\)
-- \(a = 0.1\), loss \(= -\log(0.1) \approx 2.303\)
+- \(a = 0.9\), loss \(= -log(0.9) ~0.105\)
+- \(a = 0.5\), loss \(= -log(0.5) ~0.693\)
+- \(a = 0.1\), loss \(= -log(0.1) ~2.303\)
 
 So lower is better.
 
@@ -416,7 +416,7 @@ So \(A-Y\) tells the model:
 - direction to move
 - how strongly to move
 
-## 8. Why is \(dW = \frac{1}{m}(A-Y)X^T\)?
+## 8. Why is $$ (dW = \frac{1}{m}(A-Y)X^T\ ? $$
 
 This is easier than it looks.
 
@@ -714,25 +714,25 @@ That is the whole learning story.
 
 Here is the compact mental map:
 
-- \(z = W x + b\)  
+$$ z = W x + b $$  
   “Compute a score”
 
-- \(a = \sigma(z)\)  
+$$ a = \sigma(z) $$  
   “Convert score into probability-like output”
 
-- \(\mathcal{L}\)  
+$$ \mathcal{L} $$
   “Measure how wrong the prediction is”
 
-- \(A-Y\)  
+$$ A-Y $$  
   “Prediction error”
 
-- \(dW = \frac{1}{m}(A-Y)X^T\)  
+$$ dW = \frac{1}{m}(A-Y)X^T $$  
   “How each weight should change based on error and inputs”
 
-- \(db = \frac{1}{m} \sum(A-Y)\)  
+$$ db = \frac{1}{m} \sum(A-Y) $$  
   “How the global shift should change”
 
-- \(W = W - \alpha dW,\ b = b - \alpha db\)  
+$$ W = W - \alpha dW,\ b = b - \alpha db $$  
   “Move parameters to reduce the error”
 
 ## 18. One note about the later notebook section
